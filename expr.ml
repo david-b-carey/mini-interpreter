@@ -114,7 +114,16 @@ let rec exp_to_concrete_string (exp : expr) : string =
                                     exp_to_concrete_string y ^ ")")
   | Conditional(x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^
                             exp_to_concrete_string y ^ " else " ^
-                            exp_to_concrete_string z ;;
+                            exp_to_concrete_string z
+  | Fun(v, x) -> "fun " ^ v ^ " -> (" ^ exp_to_concrete_string x ^ ")"
+  | Let(v, x, y) -> "let " ^ v ^ " = (" ^ exp_to_concrete_string x ^ ") in (" ^
+                    exp_to_concrete_string y ^ ")"
+  | Letrec(v, x, y) -> "let rec " ^ v ^ " = (" ^ exp_to_concrete_string x ^
+                       ") in (" ^ exp_to_concrete_string y ^ ")"
+  | Raise -> "Raise"
+  | Unassigned -> "Unassigned"
+  | App(f, x) -> "(" ^ exp_to_concrete_string f ^ ") (" ^
+                 exp_to_concrete_string x ^ ")" ;;
 
 (* exp_to_abstract_string : expr -> string
    Returns a string representation of the abstract syntax of the expr *)
@@ -152,5 +161,5 @@ let rec exp_to_abstract_string (exp : expr) : string =
                        exp_to_abstract_string y ^ ")"
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App(x, y) -> "App(" ^ exp_to_abstract_string x ^ ", " ^
-                 exp_to_abstract_string y ^ ")" ;;
+  | App(f, x) -> "App(" ^ exp_to_abstract_string f ^ ", " ^
+                 exp_to_abstract_string x ^ ")" ;;
