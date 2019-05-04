@@ -52,7 +52,7 @@ type varidset = SS.t ;;
    Test to see if two sets of variables have the same elements (for
    testing purposes) *)
 let same_vars : varidset -> varidset -> bool =
-  SS.equal;;
+  SS.equal ;;
 
 (* vars_of_list : string list -> varidset
    Generate a set of variable names from a list of strings (for
@@ -64,7 +64,17 @@ let vars_of_list : string list -> varidset =
    Return a set of the variable names that are free in expression
    exp *)
 let free_vars (exp : expr) : varidset =
-  failwith "free_vars not implemented" ;;
+  let rec builder (exp : expr) (vs : varidset) : varidset =
+    match exp with
+    | Var(x) -> SS.add x vs
+    | Num _ -> vs
+    | Bool _ -> vs
+    | Binop(_, x, y) -> SS.union (builder x vs) (builder y vs)
+    | Fun(v, x) -> SS.remove v (builder x vs)
+    | Let(v, x, y) -> SS.union (SS.remove v (builder y vs)) (builder x vs)
+    | App(f, x) -> SS.union (builder f vs) (builder x vs)
+  in
+  builder exp SS.empty ;;
   
 (* new_varname : unit -> varid
    Return a fresh variable, constructed with a running counter a la
