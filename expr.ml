@@ -110,26 +110,26 @@ let rec exp_to_concrete_string (exp : expr) : string =
   | Bool(x) -> string_of_bool x
   | Unop(u, x) -> (match u with
                   | Negate -> "~- (" ^
-                              exp_to_concrete_string x ^ ")")
+                              exp_to_concrete_string x) ^ ")"
   | Binop(b, x, y) -> (match b with
-                      | Plus -> "(" ^ exp_to_concrete_string x ^ ") + (" ^
-                                exp_to_concrete_string y ^ ")"
-                      | Minus -> "(" ^ exp_to_concrete_string x ^ ") - (" ^
+                      | Plus -> exp_to_concrete_string x ^ " + " ^
+                                exp_to_concrete_string y
+                      | Minus -> exp_to_concrete_string x ^ " - (" ^
                                  exp_to_concrete_string y ^ ")"
                       | Times -> "(" ^ exp_to_concrete_string x ^ ") * (" ^
                                  exp_to_concrete_string y ^ ")"
-                      | Equals -> "(" ^ exp_to_concrete_string x ^ ") = (" ^
-                                  exp_to_concrete_string y ^ ")"
-                      | LessThan -> "(" ^ exp_to_concrete_string x ^ ") < (" ^
-                                    exp_to_concrete_string y ^ ")")
+                      | Equals -> exp_to_concrete_string x ^ " = " ^
+                                  exp_to_concrete_string y
+                      | LessThan -> exp_to_concrete_string x ^ " < " ^
+                                    exp_to_concrete_string y)
   | Conditional(x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^
                             exp_to_concrete_string y ^ " else " ^
                             exp_to_concrete_string z
-  | Fun(v, x) -> "fun " ^ v ^ " -> (" ^ exp_to_concrete_string x ^ ")"
-  | Let(v, x, y) -> "let " ^ v ^ " = (" ^ exp_to_concrete_string x ^ ") in (" ^
-                    exp_to_concrete_string y ^ ")"
-  | Letrec(v, x, y) -> "let rec " ^ v ^ " = (" ^ exp_to_concrete_string x ^
-                       ") in (" ^ exp_to_concrete_string y ^ ")"
+  | Fun(v, x) -> "fun " ^ v ^ " -> " ^ exp_to_concrete_string x
+  | Let(v, x, y) -> "let " ^ v ^ " = " ^ exp_to_concrete_string x ^ " in " ^
+                    exp_to_concrete_string y
+  | Letrec(v, x, y) -> "let rec " ^ v ^ " = " ^ exp_to_concrete_string x ^
+                       " in " ^ exp_to_concrete_string y
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
   | App(f, x) -> "(" ^ exp_to_concrete_string f ^ ") (" ^
