@@ -63,7 +63,9 @@ let vars_of_list : string list -> varidset =
 (* free_vars : expr -> varidset
    Return a set of the variable names that are free in expression
    exp *)
+
 let free_vars (exp : expr) : varidset =
+  let vs : varidset = SS.empty in
   let rec builder (exp : expr) (vs : varidset) : varidset =
     match exp with
     | Var(x) -> SS.add x vs
@@ -74,7 +76,7 @@ let free_vars (exp : expr) : varidset =
     | Let(v, x, y) -> SS.union (SS.remove v (builder y vs)) (builder x vs)
     | App(f, x) -> SS.union (builder f vs) (builder x vs)
   in
-  builder exp SS.empty ;;
+  builder exp vs ;;
   
 (* new_varname : unit -> varid
    Return a fresh variable, constructed with a running counter a la
@@ -104,8 +106,13 @@ let subst (var_name : varid) (repl : expr) (exp : expr) : expr =
 (* exp_to_concrete_string : expr -> string
    Returns a concrete syntax string representation of the expr *)
 let rec exp_to_concrete_string (exp : expr) : string =
+  (* Note: Technically, since varids are of type string, the user could
+     input them as strings broken up by spaces, such as "v x". This could
+     make my concrete string representations appear a bit awkward, but
+     I have gathered that we can assume each varid to be represented in
+     a contiguous, character-by-character string. *)
   match exp with
-  | Var(x) -> "" ^ x
+  | Var(v) -> "" ^ v
   | Num(x) -> string_of_int x
   | Bool(x) -> string_of_bool x
   | Unop(u, x) -> (match u with
@@ -139,7 +146,7 @@ let rec exp_to_concrete_string (exp : expr) : string =
    Returns a string representation of the abstract syntax of the expr *)
 let rec exp_to_abstract_string (exp : expr) : string =
   match exp with
-  | Var(x) -> "Var(" ^ x ^ ")"
+  | Var(v) -> "Var(" ^ v ^ ")"
   | Num(x) -> "Num(" ^ string_of_int x ^ ")"
   | Bool(x) -> "Bool(" ^ string_of_bool x ^ ")"
   | Unop(u, x) -> (match u with
