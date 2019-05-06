@@ -68,16 +68,26 @@ let free_vars (exp : expr) : varidset =
   let vs : varidset = SS.empty in
   let rec builder (exp : expr) (vs : varidset) : varidset =
     match exp with
-    | Var(x) -> SS.add x vs
+    | Var(x) -> if SS.is_empty vs then SS.singleton x
+                else SS.diff vs (SS.singleton x)
     | Num _ -> vs
     | Bool _ -> vs
-    | Binop(_, x, y) -> SS.union (builder x vs) (builder y vs)
-    | Fun(v, x) -> SS.remove v (builder x vs)
-    | Let(v, x, y) -> SS.union (SS.remove v (builder y vs)) (builder x vs)
-    | App(f, x) -> SS.union (builder f vs) (builder x vs)
+    | Unop(_, x) -> SS.diff vs (builder x vs)
+    | Binop(_, x, y) -> SS.diff vs (SS.union (builder x vs) (builder y vs))
+    | Conditional(x, y, z) ->
+        SS.diff vs (SS.union (builder x vs) (SS.union (builder y vs)
+                                            (builder z vs)))
+    | Fun(v, x) -> SS.diff vs (SS.remove v (builder x vs))
+    | Let(v, x, y) ->
+        SS.diff vs (SS.union (SS.remove v (builder y vs)) (builder x vs))
+    | Letrec(_, x, y) ->
+        SS.diff vs (SS.union (builder y vs) (builder x vs))
+    | Raise -> vs
+    | Unassigned -> vs
+    | App(x, y) -> SS.diff vs (SS.union (builder x vs) (builder y vs))
   in
   builder exp vs ;;
-  
+
 (* new_varname : unit -> varid
    Return a fresh variable, constructed with a running counter a la
    gensym. Assumes no variable names use the prefix "var". (Otherwise,
@@ -117,7 +127,7 @@ let rec exp_to_concrete_string (exp : expr) : string =
   | Bool(x) -> string_of_bool x
   | Unop(u, x) -> (match u with
                   | Negate -> "~- (" ^
-                              exp_to_concrete_string x) ^ ")"
+                              exp_to_concrete_string x ^ ")")
   | Binop(b, x, y) -> (match b with
                       | Plus -> exp_to_concrete_string x ^ " + " ^
                                 exp_to_concrete_string y
@@ -139,8 +149,8 @@ let rec exp_to_concrete_string (exp : expr) : string =
                        " in " ^ exp_to_concrete_string y
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App(f, x) -> "(" ^ exp_to_concrete_string f ^ ") (" ^
-                 exp_to_concrete_string x ^ ")" ;;
+  | App(x, y) -> "(" ^ exp_to_concrete_string x ^ ") (" ^
+                 exp_to_concrete_string y ^ ")" ;;
 
 (* exp_to_abstract_string : expr -> string
    Returns a string representation of the abstract syntax of the expr *)
@@ -178,5 +188,53 @@ let rec exp_to_abstract_string (exp : expr) : string =
                        exp_to_abstract_string y ^ ")"
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App(f, x) -> "App(" ^ exp_to_abstract_string f ^ ", " ^
-                 exp_to_abstract_string x ^ ")" ;;
+  | App(x, y) -> "App(" ^ exp_to_abstract_string x ^ ", " ^
+                 exp_to_abstract_string y ^ ")" ;;
+
+(* Generate expression examples from textbook *)
+
+let e1 : expr = Num(3) ;;
+let e2 : expr = App(Num(3), Num(4)) ;;
+let e3 : expr = Let("f", Fun("x", Var("x")), App(App(Var("f"), Var("f")), Num(3))) ;;
+let e4 : expr = 
+  Letrec("f", Fun("x", Conditional(Binop(Equals, Var("x"), Num(0)), Num(1),
+  Binop(Times, Var("x"), App(Var("f"), Binop(Minus, Var("x"), Num(1)))))),
+  App(Var("f"), Num(4))) ;;
+
+(* Tests for exp_to_concrete_string *)
+let _ =
+  assert (exp_to_concrete_string e1 = "3");
+  assert (exp_to_concrete_string e2 = "(3) (4)");
+  assert (exp_to_concrete_string e3 = "let f = fun x -> x in ((f) (f)) (3)");
+  assert (exp_to_concrete_string e4 =
+	       "let rec f = fun x -> if x = 0 then 1 else (x) * ((f) (x - (1))) in (f) (4)") ;;
+
+(* Tests for exp_to_abstract_string *)
+let _ =
+  assert (exp_to_abstract_string e1 = "Num(3)");
+  assert (exp_to_abstract_string e2 = "App(Num(3), Num(4))");
+  assert (exp_to_abstract_string e3 =
+           "Let(f, Fun(x, Var(x)), App(App(Var(f), Var(f)), Num(3)))");
+  assert (exp_to_abstract_string e4 =
+           "Letrec(f, Fun(x, Conditional(Binop(Equals, Var(x), Num(0)), Num(1), Binop(Times, Var(x), App(Var(f), Binop(Minus, Var(x), Num(1)))))), App(Var(f), Num(4)))") ;;
+
+(* Construct sets for testing free_vars *)
+let s1 = SS.empty ;;
+
+
+(* Tests for free_vars *)
+let _ =
+  assert (SS.equal (free_vars e1) s1);
+  assert (SS.equal (free_vars e2) s1);
+  assert (SS.equal (free_vars e3) s1);
+  assert (SS.equal (free_vars e4) s1) ;;
+
+
+
+
+
+
+
+
+
+

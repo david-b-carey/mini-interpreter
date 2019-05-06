@@ -1,10 +1,10 @@
-all: miniml unit_tests
+all: miniml expr
 
 miniml: miniml.ml
 	ocamlbuild miniml.byte
 
-unit_tests: unit_tests.ml
-	ocamlbuild unit_tests.byte
+expr: expr.ml
+	ocamlbuild expr.byte
 
 clean:
 	rm -rf _build *.byte
