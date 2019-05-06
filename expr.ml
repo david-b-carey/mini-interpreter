@@ -68,8 +68,8 @@ let free_vars (exp : expr) : varidset =
   let vs : varidset = SS.empty in
   let rec builder (exp : expr) (vs : varidset) : varidset =
     match exp with
-    | Var(x) -> if SS.is_empty vs then SS.singleton x
-                else SS.diff vs (SS.singleton x)
+    | Var(v) -> if SS.is_empty vs then SS.singleton v
+                else SS.diff vs (SS.singleton v)
     | Num _ -> vs
     | Bool _ -> vs
     | Unop(_, x) -> SS.diff vs (builder x vs)
