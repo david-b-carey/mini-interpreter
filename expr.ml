@@ -92,8 +92,11 @@ let free_vars (exp : expr) : varidset =
    Return a fresh variable, constructed with a running counter a la
    gensym. Assumes no variable names use the prefix "var". (Otherwise,
    they might accidentally be the same as a generated variable name.) *)
+let ctr = ref 0 ;;
 let new_varname () : varid =
-  failwith "new_varname not implemented" ;;
+  let name = string_of_int !ctr in
+  ctr := !ctr + 1;
+  name ;;
 
 (*......................................................................
   Substitution 
@@ -218,6 +221,20 @@ let _ =
   assert (exp_to_abstract_string e4 =
            "Letrec(f, Fun(x, Conditional(Binop(Equals, Var(x), Num(0)), Num(1), Binop(Times, Var(x), App(Var(f), Binop(Minus, Var(x), Num(1)))))), App(Var(f), Num(4)))") ;;
 
+(* Construct additional expressions for testing free_vars *)
+let e5 : expr =
+  App(Fun("x", Binop(Plus, Var("x"), Var("x"))),
+  Binop(Times, Num(3), Num(4))) ;;
+let e6 : expr =
+  Let("double", Fun("x", Binop(Times, Num(2), Var("x"))),
+  App(Var("double"), App(Var("double"), Num(3)))) ;;
+let e7 : expr =
+  Let("id", Fun("x", Var("x")),
+  Let("square", Fun("x", Binop(Times, Var("x"), Var("x"))),
+  Let("y", Num(3), App(App(Var("id"), Var("square")), Var("y"))))) ;;
+let e8 : expr =
+  Let("f", Fun("z", Var("y")), App(Fun("y", App(Var("f"), Num(3))), Num(1))) ;;
+
 (* Construct sets for testing free_vars *)
 let s1 = SS.empty ;;
 
@@ -227,7 +244,11 @@ let _ =
   assert (SS.equal (free_vars e1) s1);
   assert (SS.equal (free_vars e2) s1);
   assert (SS.equal (free_vars e3) s1);
-  assert (SS.equal (free_vars e4) s1) ;;
+  assert (SS.equal (free_vars e4) s1);
+  assert (SS.equal (free_vars e5) s1);
+  assert (SS.equal (free_vars e6) s1);
+  assert (SS.equal (free_vars e7) s1);
+  assert (SS.equal (free_vars e8) s1) ;;
 
 
 
