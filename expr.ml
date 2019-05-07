@@ -105,8 +105,23 @@ let new_varname () : varid =
 
 (* subst : varid -> expr -> expr -> expr
    Substitute repl for free occurrences of var_name in exp *)
-let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
-  failwith "Not yet implemented"  ;;
+let subst (var_name : varid) (repl : expr) (exp : expr) : expr =
+  let rec subber (exp : expr) : expr =
+    match exp with
+    | Var v -> if v = var_name then repl else Var v
+    | Num x -> Num x
+    | Bool x -> Bool x
+    | Unop (u, x) -> Unop (u, (subber x))
+    | Binop (b, x, y) -> Binop (b, (subber x), (subber y))
+    | Conditional (x, y, z) ->
+        Conditional ((subber x), (subber y), (subber z))
+    | Fun (v, x) -> failwith "not yet implemented"
+    | Let (v, x, y) -> failwith "not yet implemented"
+    | Letrec (v, x, y) -> failwith "not yet implemented"
+    | Raise -> Raise
+    | Unassigned -> Unassigned
+    | App (x, y) -> App ((subber x), (subber y)) in
+  subber exp ;;
 
 (*......................................................................
   String representations of expressions
