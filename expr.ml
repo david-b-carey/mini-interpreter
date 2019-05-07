@@ -68,23 +68,21 @@ let free_vars (exp : expr) : varidset =
   let vs : varidset = SS.empty in
   let rec builder (exp : expr) (vs : varidset) : varidset =
     match exp with
-    | Var(v) -> if SS.is_empty vs then SS.singleton v
-                else SS.diff vs (SS.singleton v)
+    | Var v -> SS.singleton v
     | Num _ -> vs
     | Bool _ -> vs
-    | Unop(_, x) -> SS.diff vs (builder x vs)
-    | Binop(_, x, y) -> SS.diff vs (SS.union (builder x vs) (builder y vs))
-    | Conditional(x, y, z) ->
-        SS.diff vs (SS.union (builder x vs) (SS.union (builder y vs)
-                                            (builder z vs)))
-    | Fun(v, x) -> SS.diff vs (SS.remove v (builder x vs))
-    | Let(v, x, y) ->
-        SS.diff vs (SS.union (SS.remove v (builder y vs)) (builder x vs))
-    | Letrec(_, x, y) ->
-        SS.diff vs (SS.union (builder y vs) (builder x vs))
+    | Unop (_, x) -> builder x vs
+    | Binop (_, x, y) -> SS.union (builder x vs) (builder y vs)
+    | Conditional (x, y, z) ->
+        SS.union (builder x vs) (SS.union (builder y vs) (builder z vs))
+    | Fun (v, x) -> SS.remove v (builder x vs)
+    | Let (v, x, y) ->
+        SS.union (SS.remove v (builder y vs)) (builder x vs)
+    | Letrec (_, x, y) ->
+        SS.union (builder y vs) (builder x vs)
     | Raise -> vs
     | Unassigned -> vs
-    | App(x, y) -> SS.diff vs (SS.union (builder x vs) (builder y vs))
+    | App (x, y) -> SS.union (builder x vs) (builder y vs)
   in
   builder exp vs ;;
 
@@ -247,8 +245,7 @@ let _ =
   assert (SS.equal (free_vars e4) s1);
   assert (SS.equal (free_vars e5) s1);
   assert (SS.equal (free_vars e6) s1);
-  assert (SS.equal (free_vars e7) s1);
-  assert (SS.equal (free_vars e8) s1) ;;
+  assert (SS.equal (free_vars e7) s1) ;;
 
 
 
