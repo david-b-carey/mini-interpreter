@@ -82,8 +82,7 @@ let free_vars (exp : expr) : varidset =
         SS.union (SS.remove v (builder y vs)) (SS.remove v (builder x vs))
     | Raise -> vs
     | Unassigned -> vs
-    | App (x, y) -> SS.union (builder x vs) (builder y vs)
-  in
+    | App (x, y) -> SS.union (builder x vs) (builder y vs) in
   builder exp vs ;;
 
 (* new_varname : unit -> varid
@@ -92,7 +91,7 @@ let free_vars (exp : expr) : varidset =
    they might accidentally be the same as a generated variable name.) *)
 let ctr = ref 0 ;;
 let new_varname () : varid =
-  let name = string_of_int !ctr in
+  let name = "x" ^ string_of_int !ctr in
   ctr := !ctr + 1;
   name ;;
 
@@ -106,8 +105,8 @@ let new_varname () : varid =
 
 (* subst : varid -> expr -> expr -> expr
    Substitute repl for free occurrences of var_name in exp *)
-let subst (var_name : varid) (repl : expr) (exp : expr) : expr =
-  failwith "subst not implemented" ;;
+let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
+  failwith "Not yet implemented"  ;;
 
 (*......................................................................
   String representations of expressions
