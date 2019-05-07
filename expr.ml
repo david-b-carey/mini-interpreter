@@ -78,8 +78,8 @@ let free_vars (exp : expr) : varidset =
     | Fun (v, x) -> SS.remove v (builder x vs)
     | Let (v, x, y) ->
         SS.union (SS.remove v (builder y vs)) (builder x vs)
-    | Letrec (_, x, y) ->
-        SS.union (builder y vs) (builder x vs)
+    | Letrec (v, x, y) ->
+        SS.union (SS.remove v (builder y vs)) (SS.remove v (builder x vs))
     | Raise -> vs
     | Unassigned -> vs
     | App (x, y) -> SS.union (builder x vs) (builder y vs)
@@ -193,7 +193,6 @@ let rec exp_to_abstract_string (exp : expr) : string =
                   exp_to_abstract_string y ^ ")" ;;
 
 (* Generate expression examples from textbook *)
-
 let e1 : expr = Num(3) ;;
 let e2 : expr = App(Num(3), Num(4)) ;;
 let e3 : expr = Let("f", Fun("x", Var("x")), App(App(Var("f"), Var("f")), Num(3))) ;;
@@ -232,20 +231,50 @@ let e7 : expr =
   Let("y", Num(3), App(App(Var("id"), Var("square")), Var("y"))))) ;;
 let e8 : expr =
   Let("f", Fun("z", Var("y")), App(Fun("y", App(Var("f"), Num(3))), Num(1))) ;;
+let e9 : expr =
+  Fun("x", Binop(Plus, Var("x"), Var("y"))) ;;
+let e10 : expr =
+  Let("x", Num(3), Binop(Plus, Var("x"), Var("y"))) ;;
+let e11 : expr =
+  Var("y") ;;
+let e12 : expr =
+  Binop(Plus, Var("x"), Var("y")) ;;
+let e13 : expr =
+  Let("f", App(Var("f"), Num(3)), Binop(Plus, Var("x"), Var("y"))) ;;
+let e14 : expr =
+  App(Fun("y", Binop(Plus, Var("y"), Var("y"))), Var("y")) ;;
+let e15 : expr =
+  Fun("x", Let("x", Var("y"), Binop(Plus, Var("x"), Num(3)))) ;;
+let e16 : expr =
+  Let("x", Num(3), Var("x")) ;;
+let e17 : expr =
+  Binop(Plus, Var("y"), Var("y")) ;;
 
 (* Construct sets for testing free_vars *)
 let s1 = SS.empty ;;
-
+let s2 = vars_of_list ["y"] ;;
+let s3 = vars_of_list ["x"; "y"] ;;
+let s4 = vars_of_list ["f"; "x"; "y"] ;;
 
 (* Tests for free_vars *)
 let _ =
-  assert (SS.equal (free_vars e1) s1);
-  assert (SS.equal (free_vars e2) s1);
-  assert (SS.equal (free_vars e3) s1);
-  assert (SS.equal (free_vars e4) s1);
-  assert (SS.equal (free_vars e5) s1);
-  assert (SS.equal (free_vars e6) s1);
-  assert (SS.equal (free_vars e7) s1) ;;
+  assert (same_vars (free_vars e1) s1);
+  assert (same_vars (free_vars e2) s1);
+  assert (same_vars (free_vars e3) s1);
+  assert (same_vars (free_vars e4) s1);
+  assert (same_vars (free_vars e5) s1);
+  assert (same_vars (free_vars e6) s1);
+  assert (same_vars (free_vars e7) s1);
+  assert (same_vars (free_vars e8) s2);
+  assert (same_vars (free_vars e9) s2);
+  assert (same_vars (free_vars e10) s2);
+  assert (same_vars (free_vars e11) s2);
+  assert (same_vars (free_vars e12) s3);
+  assert (same_vars (free_vars e13) s4);
+  assert (same_vars (free_vars e14) s2);
+  assert (same_vars (free_vars e15) s2);
+  assert (same_vars (free_vars e16) s1);
+  assert (same_vars (free_vars e17) s2) ;;
 
 
 
