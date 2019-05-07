@@ -89,11 +89,13 @@ let free_vars (exp : expr) : varidset =
    Return a fresh variable, constructed with a running counter a la
    gensym. Assumes no variable names use the prefix "var". (Otherwise,
    they might accidentally be the same as a generated variable name.) *)
-let ctr = ref 0 ;;
-let new_varname () : varid =
-  let name = "x" ^ string_of_int !ctr in
-  ctr := !ctr + 1;
-  name ;;
+
+let new_varname =
+  let ctr = ref 0 in
+  fun () ->
+    let name = "x" ^ string_of_int !ctr in
+    ctr := !ctr + 1;
+    name ;;
 
 (*......................................................................
   Substitution 
