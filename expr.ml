@@ -125,74 +125,74 @@ let rec exp_to_concrete_string (exp : expr) : string =
      I have gathered that we can assume each varid to be represented in
      a contiguous, character-by-character string. *)
   match exp with
-  | Var(v) -> "" ^ v
-  | Num(x) -> string_of_int x
-  | Bool(x) -> string_of_bool x
-  | Unop(u, x) -> (match u with
-                  | Negate -> "~- (" ^
-                              exp_to_concrete_string x ^ ")")
-  | Binop(b, x, y) -> (match b with
-                      | Plus -> exp_to_concrete_string x ^ " + " ^
-                                exp_to_concrete_string y
-                      | Minus -> exp_to_concrete_string x ^ " - (" ^
-                                 exp_to_concrete_string y ^ ")"
-                      | Times -> "(" ^ exp_to_concrete_string x ^ ") * (" ^
-                                 exp_to_concrete_string y ^ ")"
-                      | Equals -> exp_to_concrete_string x ^ " = " ^
-                                  exp_to_concrete_string y
-                      | LessThan -> exp_to_concrete_string x ^ " < " ^
-                                    exp_to_concrete_string y)
-  | Conditional(x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^
-                            exp_to_concrete_string y ^ " else " ^
-                            exp_to_concrete_string z
-  | Fun(v, x) -> "fun " ^ v ^ " -> " ^ exp_to_concrete_string x
-  | Let(v, x, y) -> "let " ^ v ^ " = " ^ exp_to_concrete_string x ^ " in " ^
-                    exp_to_concrete_string y
-  | Letrec(v, x, y) -> "let rec " ^ v ^ " = " ^ exp_to_concrete_string x ^
-                       " in " ^ exp_to_concrete_string y
+  | Var v -> "" ^ v
+  | Num x -> string_of_int x
+  | Bool x -> string_of_bool x
+  | Unop (u, x) -> (match u with
+                   | Negate -> "~- (" ^
+                               exp_to_concrete_string x ^ ")")
+  | Binop (b, x, y) -> (match b with
+                       | Plus -> exp_to_concrete_string x ^ " + " ^
+                                 exp_to_concrete_string y
+                       | Minus -> exp_to_concrete_string x ^ " - (" ^
+                                  exp_to_concrete_string y ^ ")"
+                       | Times -> "(" ^ exp_to_concrete_string x ^ ") * (" ^
+                                  exp_to_concrete_string y ^ ")"
+                       | Equals -> exp_to_concrete_string x ^ " = " ^
+                                   exp_to_concrete_string y
+                       | LessThan -> exp_to_concrete_string x ^ " < " ^
+                                     exp_to_concrete_string y)
+  | Conditional (x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^
+                             exp_to_concrete_string y ^ " else " ^
+                             exp_to_concrete_string z
+  | Fun (v, x) -> "fun " ^ v ^ " -> " ^ exp_to_concrete_string x
+  | Let (v, x, y) -> "let " ^ v ^ " = " ^ exp_to_concrete_string x ^ " in " ^
+                     exp_to_concrete_string y
+  | Letrec (v, x, y) -> "let rec " ^ v ^ " = " ^ exp_to_concrete_string x ^
+                        " in " ^ exp_to_concrete_string y
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App(x, y) -> "(" ^ exp_to_concrete_string x ^ ") (" ^
-                 exp_to_concrete_string y ^ ")" ;;
+  | App (x, y) -> "(" ^ exp_to_concrete_string x ^ ") (" ^
+                  exp_to_concrete_string y ^ ")" ;;
 
 (* exp_to_abstract_string : expr -> string
    Returns a string representation of the abstract syntax of the expr *)
 let rec exp_to_abstract_string (exp : expr) : string =
   match exp with
-  | Var(v) -> "Var(" ^ v ^ ")"
-  | Num(x) -> "Num(" ^ string_of_int x ^ ")"
-  | Bool(x) -> "Bool(" ^ string_of_bool x ^ ")"
-  | Unop(u, x) -> (match u with
-                  | Negate -> "Unop(Negate, " ^
-                              exp_to_abstract_string x ^ ")")
-  | Binop(b, x, y) -> (match b with
-                      | Plus -> "Binop(Plus, " ^
-                                exp_to_abstract_string x ^ ", " ^
-                                exp_to_abstract_string y ^ ")"
-                      | Minus -> "Binop(Minus, " ^
+  | Var v -> "Var(" ^ v ^ ")"
+  | Num x -> "Num(" ^ string_of_int x ^ ")"
+  | Bool x -> "Bool(" ^ string_of_bool x ^ ")"
+  | Unop (u, x) -> (match u with
+                   | Negate -> "Unop(Negate, " ^
+                               exp_to_abstract_string x ^ ")")
+  | Binop (b, x, y) -> (match b with
+                       | Plus -> "Binop(Plus, " ^
                                  exp_to_abstract_string x ^ ", " ^
                                  exp_to_abstract_string y ^ ")"
-                      | Times -> "Binop(Times, " ^
-                                 exp_to_abstract_string x ^ ", " ^
-                                 exp_to_abstract_string y ^ ")"
-                      | Equals -> "Binop(Equals, " ^
+                       | Minus -> "Binop(Minus, " ^
                                   exp_to_abstract_string x ^ ", " ^
                                   exp_to_abstract_string y ^ ")"
-                      | LessThan -> "Binop(LessThan, " ^
-                                    exp_to_abstract_string x ^ ", " ^
-                                    exp_to_abstract_string y ^ ")")
-  | Conditional(x, y, z) -> "Conditional(" ^ exp_to_abstract_string x ^ ", " ^
-                            exp_to_abstract_string y ^ ", " ^
-                            exp_to_abstract_string z ^ ")"
-  | Fun(v, x) -> "Fun(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ")"
-  | Let(v, x, y) -> "Let(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ", " ^
-                    exp_to_abstract_string y ^ ")"
-  | Letrec(v, x, y) -> "Letrec(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ", " ^
-                       exp_to_abstract_string y ^ ")"
+                       | Times -> "Binop(Times, " ^
+                                  exp_to_abstract_string x ^ ", " ^
+                                  exp_to_abstract_string y ^ ")"
+                       | Equals -> "Binop(Equals, " ^
+                                   exp_to_abstract_string x ^ ", " ^
+                                   exp_to_abstract_string y ^ ")"
+                       | LessThan -> "Binop(LessThan, " ^
+                                     exp_to_abstract_string x ^ ", " ^
+                                     exp_to_abstract_string y ^ ")")
+  | Conditional (x, y, z) -> "Conditional(" ^ exp_to_abstract_string x ^ ", " ^
+                             exp_to_abstract_string y ^ ", " ^
+                             exp_to_abstract_string z ^ ")"
+  | Fun (v, x) -> "Fun(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ")"
+  | Let (v, x, y) -> "Let(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ", " ^
+                     exp_to_abstract_string y ^ ")"
+  | Letrec (v, x, y) -> "Letrec(" ^ v ^ ", " ^ exp_to_abstract_string x ^ ", " ^
+                        exp_to_abstract_string y ^ ")"
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App(x, y) -> "App(" ^ exp_to_abstract_string x ^ ", " ^
-                 exp_to_abstract_string y ^ ")" ;;
+  | App (x, y) -> "App(" ^ exp_to_abstract_string x ^ ", " ^
+                  exp_to_abstract_string y ^ ")" ;;
 
 (* Generate expression examples from textbook *)
 
