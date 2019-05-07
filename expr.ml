@@ -105,23 +105,38 @@ let new_varname () : varid =
 
 (* subst : varid -> expr -> expr -> expr
    Substitute repl for free occurrences of var_name in exp *)
-let subst (var_name : varid) (repl : expr) (exp : expr) : expr =
-  let rec subber (exp : expr) : expr =
-    match exp with
-    | Var v -> if v = var_name then repl else Var v
-    | Num x -> Num x
-    | Bool x -> Bool x
-    | Unop (u, x) -> Unop (u, (subber x))
-    | Binop (b, x, y) -> Binop (b, (subber x), (subber y))
-    | Conditional (x, y, z) ->
-        Conditional ((subber x), (subber y), (subber z))
-    | Fun (v, x) -> failwith "not yet implemented"
-    | Let (v, x, y) -> failwith "not yet implemented"
-    | Letrec (v, x, y) -> failwith "not yet implemented"
-    | Raise -> Raise
-    | Unassigned -> Unassigned
-    | App (x, y) -> App ((subber x), (subber y)) in
-  subber exp ;;
+let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
+  match exp with
+  | Var v -> if v = var_name then repl else Var v
+  | Num x -> Num x
+  | Bool x -> Bool x
+  | Unop (u, x) -> Unop (u, (subst var_name repl x))
+  | Binop (b, x, y) -> Binop (b, (subst var_name repl x), (subst var_name repl y))
+  | Conditional (x, y, z) ->
+      Conditional ((subst var_name repl x), (subst var_name repl y), (subst var_name repl z))
+  | Fun (v, x) -> if v = var_name then Fun (v, x)
+                  else if (v <> var_name) &&
+                          (not (SS.mem v (free_vars repl)))
+                    then Fun (v, subst var_name repl x)
+                  else
+                    let newvar = new_varname () in
+                    Fun (newvar, (subst var_name repl (subst v (Var newvar) x)))
+  | Let (v, x, y) -> if v = var_name
+                       then Let (v, (subst var_name repl x), y)
+                     else if (v <> var_name) &&
+                             (not (SS.mem v (free_vars repl)))
+                       then Let (v, (subst var_name repl x), (subst var_name repl y))
+                     else
+                       let newvar = new_varname () in
+                       Let (newvar, (subst var_name repl x),
+                       (subst var_name repl (subst v (Var newvar) y)))
+  | Letrec (v, x, y) -> if v = var_name
+                          then Letrec (v, x, y)
+                        else
+                          Letrec(v, (subst var_name repl x), (subst var_name repl y))
+  | Raise -> Raise
+  | Unassigned -> Unassigned
+  | App (x, y) -> App ((subst var_name repl x), (subst var_name repl y)) ;;
 
 (*......................................................................
   String representations of expressions
@@ -290,7 +305,16 @@ let _ =
   assert (same_vars (free_vars e16) s1);
   assert (same_vars (free_vars e17) s2) ;;
 
-
+(* Tests for subst *)
+let _ =
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e1) = e1);
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e2) = e2);
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e3) = e3);
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e4) = e4);
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e5) = e5);
+  assert ((subst "x" (Binop (Plus, Var("x"), Var("x"))) e9) = e9);
+  assert ((subst "y" (Binop (Plus, Var("z"), Var("z"))) e9) =
+           Fun("x", Binop(Plus, Var("x"), (Binop (Plus, Var("z"), Var("z")))))) ;;
 
 
 
