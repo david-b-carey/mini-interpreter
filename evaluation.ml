@@ -100,30 +100,49 @@ let eval_t (exp : expr) (_env : Env.env) : Env.value =
   Env.Val exp ;;
 
 (* The SUBSTITUTION MODEL evaluator -- to be completed *)
-(*
+
 let rec eval_s (exp : expr) (env : Env.env) : Env.value =
   let val_to_exp (v : Env.value) : expr =
-    let Val e = v in
+    let Env.Val e = v in
     e in
-  match exp with
-  | Var _ -> raise (EvalException "free variable found")
-  | Num _ -> Env.Val exp
-  | Bool _ -> Env.Val exp
-  | Unop (u, x) -> let x' = val_to_exp (eval_s x) in
-                   (match u with
-                    | Negate -> ~- (Env.Val x')
-  | Binop (b, x, y) -> let x' = val_to_exp (eval_s x) in
-                       let y' = val_to_exp (eval_s y) in
-                       (match b with
-                        | Plus -> match x, y with
-                                  | Num _, Num _ -> (Env.Val x') + (Env.Val y')
-                                  | Bool _, Num _
-                                  | Num _, Bool _ ->
-                        | Minus -> (Env.Val x') - (Env.Val y')
-                        | Times -> (Env.Val x') * (Env.Val y')
-                        | Equals -> (Env.Val x') = (Env.Val y')
-                        | LessThan -> (Env.Val x') < (Env.Val y') ;;
-*)
+    match exp with
+    | Var _ -> raise EvalException
+    | Num _ -> Env.Val exp
+    | Bool _ -> Env.Val exp
+    | Unop (u, x) -> (let x' = val_to_exp (Env.Val (val_to_exp (eval_s x env))) in
+                      match u with
+                      | Negate -> (match x' with
+                                   | Num n -> Env.Val (Num (~- n))
+                                   | Bool b -> raise EvalException))
+    | Binop (b, x, y) -> let x' = val_to_exp (Env.Val (val_to_exp (eval_s x env))) in
+                         let y' = val_to_exp (Env.Val (val_to_exp (eval_s y env))) in
+                         (match b with
+                          | Plus -> (match x', y' with
+                                     | Num n, Num m -> Env.Val (Num (n + m))
+                                     | Bool _, Bool _
+                                     | Num _, Bool _ 
+                                     | Bool _, Num _ -> raise EvalException)
+                          | Minus -> (match x', y' with
+                                      | Num n, Num m -> Env.Val (Num (n - m))
+                                      | Bool _, Bool _
+                                      | Num _, Bool _ 
+                                      | Bool _, Num _ -> raise EvalException)
+                          | Times -> (match x', y' with
+                                      | Num n, Num m -> Env.Val (Num (n * m))
+                                      | Bool _, Bool _
+                                      | Num _, Bool _ 
+                                      | Bool _, Num _ -> raise EvalException)
+                          | Equals -> (match x', y' with
+                                      | Num n, Num m -> Env.Val (Bool (n = m))
+                                      | Bool a, Bool b -> Env.Val (Bool (a = b))
+                                      | Num _, Bool _ 
+                                      | Bool _, Num _ -> raise EvalException)
+                          | LessThan -> (match x, y with
+                                      | Num n, Num m -> Env.Val (Bool (n < m))
+                                      | Bool a, Bool b -> Env.Val (Bool (a < b))
+                                      | Num _, Bool _ 
+                                      | Bool _, Num _ -> raise EvalException)) ;;
+
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
    
@@ -152,4 +171,4 @@ let eval_e _ =
    above, not the evaluate function, so it doesn't matter how it's set
    when you submit your solution.) *)
    
-let evaluate = eval_t ;;
+let evaluate = eval_s ;;
