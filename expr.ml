@@ -109,31 +109,28 @@ let new_varname =
    Substitute repl for free occurrences of var_name in exp *)
 let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
   match exp with
-  | Var v -> if v = var_name then repl else Var v
-  | Num x -> Num x
-  | Bool x -> Bool x
+  | Var v -> if v = var_name then repl else exp
+  | Num x -> exp
+  | Bool x -> exp
   | Unop (u, x) -> Unop (u, (subst var_name repl x))
   | Binop (b, x, y) -> Binop (b, (subst var_name repl x), (subst var_name repl y))
   | Conditional (x, y, z) ->
       Conditional ((subst var_name repl x), (subst var_name repl y), (subst var_name repl z))
-  | Fun (v, x) -> if v = var_name then Fun (v, x)
-                  else if (v <> var_name) &&
-                          (not (SS.mem v (free_vars repl)))
+  | Fun (v, x) -> if v = var_name then exp
+                  else if not (SS.mem v (free_vars repl))
                     then Fun (v, subst var_name repl x)
                   else
                     let newvar = new_varname () in
                     Fun (newvar, (subst var_name repl (subst v (Var newvar) x)))
   | Let (v, x, y) -> if v = var_name
                        then Let (v, (subst var_name repl x), y)
-                     else if (v <> var_name) &&
-                             (not (SS.mem v (free_vars repl)))
+                     else if not (SS.mem v (free_vars repl))
                        then Let (v, (subst var_name repl x), (subst var_name repl y))
                      else
                        let newvar = new_varname () in
                        Let (newvar, (subst var_name repl x),
                        (subst var_name repl (subst v (Var newvar) y)))
-  | Letrec (v, x, y) -> if v = var_name
-                          then Letrec (v, x, y)
+  | Letrec (v, x, y) -> if v = var_name then exp
                         else
                           Letrec(v, (subst var_name repl x), (subst var_name repl y))
   | Raise -> Raise

@@ -100,11 +100,11 @@ let eval_t (exp : expr) (_env : Env.env) : Env.value =
   Env.Val exp ;;
 
 (* The SUBSTITUTION MODEL evaluator -- to be completed *)
-(*)   
+(*
 let rec eval_s (exp : expr) (env : Env.env) : Env.value =
   let val_to_exp (v : Env.value) : expr =
-    match v with
-    Val e -> e in
+    let Val e = v in
+    e in
   match exp with
   | Var _ -> raise (EvalException "free variable found")
   | Num _ -> Env.Val exp
@@ -123,7 +123,7 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                         | Times -> (Env.Val x') * (Env.Val y')
                         | Equals -> (Env.Val x') = (Env.Val y')
                         | LessThan -> (Env.Val x') < (Env.Val y') ;;
-*)     
+*)
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
    
