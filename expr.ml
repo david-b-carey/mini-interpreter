@@ -64,26 +64,23 @@ let vars_of_list : string list -> varidset =
    Return a set of the variable names that are free in expression
    exp *)
 
-let free_vars (exp : expr) : varidset =
-  let vs : varidset = SS.empty in
-  let rec builder (exp : expr) (vs : varidset) : varidset =
-    match exp with
-    | Var v -> SS.singleton v
-    | Num _ -> vs
-    | Bool _ -> vs
-    | Unop (_, x) -> builder x vs
-    | Binop (_, x, y) -> SS.union (builder x vs) (builder y vs)
-    | Conditional (x, y, z) ->
-        SS.union (builder x vs) (SS.union (builder y vs) (builder z vs))
-    | Fun (v, x) -> SS.remove v (builder x vs)
-    | Let (v, x, y) ->
-        SS.union (SS.remove v (builder y vs)) (builder x vs)
-    | Letrec (v, x, y) ->
-        SS.union (SS.remove v (builder y vs)) (SS.remove v (builder x vs))
-    | Raise -> vs
-    | Unassigned -> vs
-    | App (x, y) -> SS.union (builder x vs) (builder y vs) in
-  builder exp vs ;;
+let rec free_vars (exp : expr) : varidset =
+  match exp with
+  | Var v -> SS.singleton v
+  | Num _ -> SS.empty
+  | Bool _ -> SS.empty
+  | Unop (_, x) -> free_vars x
+  | Binop (_, x, y) -> SS.union (free_vars x) (free_vars y)
+  | Conditional (x, y, z) ->
+      SS.union (free_vars x) (SS.union (free_vars y) (free_vars z))
+  | Fun (v, x) -> SS.remove v (free_vars x)
+  | Let (v, x, y) ->
+        SS.union (SS.remove v (free_vars y)) (free_vars x)
+  | Letrec (v, x, y) ->
+        SS.union (SS.remove v (free_vars y)) (SS.remove v (free_vars x))
+  | Raise -> SS.empty
+  | Unassigned -> SS.empty
+  | App (x, y) -> SS.union (free_vars x) (free_vars y) ;;
 
 (* new_varname : unit -> varid
    Return a fresh variable, constructed with a running counter a la
@@ -132,7 +129,7 @@ let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
                        (subst var_name repl (subst v (Var newvar) y)))
   | Letrec (v, x, y) -> if v = var_name then exp
                         else
-                          Letrec(v, (subst var_name repl x), (subst var_name repl y))
+                          Letrec (v, (subst var_name repl x), (subst var_name repl y))
   | Raise -> Raise
   | Unassigned -> Unassigned
   | App (x, y) -> App ((subst var_name repl x), (subst var_name repl y)) ;;

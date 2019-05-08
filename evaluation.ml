@@ -106,14 +106,14 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
     let Env.Val e = v in
     e in
     match exp with
-    | Var _ -> raise EvalException
+    | Var _ -> raise (EvalError "free var")
     | Num _ -> Env.Val exp
     | Bool _ -> Env.Val exp
     | Unop (u, x) -> let x' = val_to_exp (eval_s x env) in
                      (match u with
                       | Negate -> (match x' with
                                    | Num n -> Env.Val (Num (~- n))
-                                   | Bool b -> raise EvalException))
+                                   | Bool b -> raise (EvalError "negate bool")))
     | Binop (b, x, y) -> let x' = val_to_exp (eval_s x env) in
                          let y' = val_to_exp (eval_s y env) in
                          let int_builder (op : int -> int -> int) =
@@ -121,7 +121,7 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                            | Num n, Num m -> Env.Val (Num ((op) n m))
                            | Bool _, Bool _
                            | Num _, Bool _ 
-                           | Bool _, Num _ -> raise EvalException) in
+                           | Bool _, Num _ -> raise (EvalError "binop int/bool")) in
                          (match b with
                          | Plus -> int_builder (+)
                          | Minus -> int_builder (-)
@@ -131,53 +131,47 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                               | Num n, Num m -> Env.Val (Bool ((=) n m))
                               | Bool a, Bool b -> Env.Val (Bool ((=) a b))
                               | Num _, Bool _ 
-                              | Bool _, Num _ -> raise EvalException)
+                              | Bool _, Num _ -> raise (EvalError "compare int/bool"))
                          | LessThan ->
                              (match x', y' with
                               | Num n, Num m -> Env.Val (Bool ((<) n m))
                               | Bool a, Bool b -> Env.Val (Bool ((<) a b))
                               | Num _, Bool _ 
-                              | Bool _, Num _ -> raise EvalException))
+                              | Bool _, Num _ -> raise (EvalError "compare int/bool")))
     | Conditional (x, y, z) -> let x' = val_to_exp (eval_s x env) in
                                let y' = val_to_exp (eval_s y env) in
                                let z' = val_to_exp (eval_s z env) in
                                (match x' with
-                               | Bool bl -> (match y', z' with
-                                              | Num n, Num m ->
-                                                  if bl then Env.Val (Num n)
-                                                  else Env.Val (Num m)
-                                              | Bool a, Bool b ->
-                                                  if bl then Env.Val (Bool b)
-                                                  else Env.Val (Bool b)
-                                              | _ -> raise EvalException)
-                               | _ -> raise EvalException)
+                               | Bool bl -> if bl then Env.Val y'
+                                            else Env.Val z'
+                               | _ -> raise (EvalError "need bool in conditional"))
     | Fun _ -> Env.Val exp
     | Let (v, x, y) -> let x' = val_to_exp (eval_s x env) in
                        Env.Val (val_to_exp (eval_s (subst v (x') y) env))
     | Letrec (v, x, y) -> let x' = val_to_exp (eval_s x env) in
-                          let recurd = Letrec (v, x', Var("v")) in
-                          let recurb = subst v recurd x' in
-                          Env.Val (val_to_exp (eval_s (subst v recurb y) env))
+                          let f1 = subst v x' y in
+                          let f2 = subst v (Letrec (v, x', Var v)) f1 in
+                          Env.Val (val_to_exp (eval_s f2 env))
     | Raise -> Env.Val exp
     | Unassigned -> Env.Val exp
     | App (x, y) -> let x' = val_to_exp (eval_s x env) in
                     let y' = val_to_exp (eval_s y env) in
                     (match x' with
-                    | Fun (v, x) ->
-                        Env.Val (val_to_exp (eval_s (subst v (y') x) env))
-                    | _ -> raise EvalException) ;;
+                    | Fun (v, a) ->
+                        Env.Val (val_to_exp (eval_s (subst v (y') a) env))
+                    | _ -> raise (EvalError "app needs function")) ;;
 
 
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
    
-let eval_d (_exp : expr) (_env : Env.env) : Env.value =
+let eval_d (exp : expr) (env : Env.env) : Env.value =
   failwith "eval_d not implemented" ;;
        
 (* The LEXICALLY-SCOPED ENVIRONMENT MODEL evaluator -- optionally
    completed as (part of) your extension *)
    
-let eval_l (_exp : expr) (_env : Env.env) : Env.value =
+let eval_l (exp : expr) (env : Env.env) : Env.value =
   failwith "eval_l not implemented" ;;
 
 (* The EXTENDED evaluator -- if you want, you can provide your
