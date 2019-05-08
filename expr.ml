@@ -167,8 +167,8 @@ let rec exp_to_concrete_string (exp : expr) : string =
                                   exp_to_concrete_string y ^ ")"
                        | Times -> "(" ^ exp_to_concrete_string x ^ " * " ^
                                   exp_to_concrete_string y ^ ")"
-                       | Equals -> exp_to_concrete_string x ^ " = " ^
-                                  exp_to_concrete_string y
+                       | Equals -> "(" ^ exp_to_concrete_string x ^ " = " ^
+                                  exp_to_concrete_string y ^ ")"
                        | LessThan -> "(" ^ exp_to_concrete_string x ^ " < " ^
                                   exp_to_concrete_string y ^ ")")
   | Conditional (x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^

@@ -15,7 +15,7 @@ let _ =
   assert (exp_to_concrete_string e2 = "3 4");
   assert (exp_to_concrete_string e3 = "let f = fun x -> x in f f 3");
   assert (exp_to_concrete_string e4 =
-	       "let rec f = fun x -> if x = 0 then 1 else (x * f (x - 1)) in f 4") ;;
+	       "let rec f = fun x -> if (x = 0) then 1 else (x * f (x - 1)) in f 4") ;;
 
 (* Tests for exp_to_abstract_string *)
 let _ =
