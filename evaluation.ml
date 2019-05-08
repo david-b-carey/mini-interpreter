@@ -19,7 +19,8 @@ exception EvalException ;;
   Environments and values 
  *)
 
-module type Env_type = sig
+module type Env_type =
+  sig
     type env
     type value =
       | Val of expr
@@ -45,16 +46,17 @@ module Env : Env_type =
     (* Creates a closure from an expression and the environment it's
        defined in *)
     let close (exp : expr) (env : env) : value =
-      failwith "close not implemented" ;;
+      Closure (exp, env) ;;
 
     (* Looks up the value of a variable in the environment *)
     let lookup (env : env) (varname : varid) : value =
-      failwith "lookup not implemented" ;;
+      let _, value = List.find (fun v -> fst v = varname) env in
+      !value ;;
 
     (* Returns a new environment just like env except that it maps the
        variable varid to loc *)
     let extend (env : env) (varname : varid) (loc : value ref) : env =
-      failwith "extend not implemented" ;;
+      (varname, loc) :: env ;;
 
     (* Returns a printable string representation of a value; the flag
        printenvp determines whether to include the environment in the
@@ -98,10 +100,30 @@ let eval_t (exp : expr) (_env : Env.env) : Env.value =
   Env.Val exp ;;
 
 (* The SUBSTITUTION MODEL evaluator -- to be completed *)
-   
-let eval_s (_exp : expr) (_env : Env.env) : Env.value =
-  failwith "eval_s not implemented" ;;
-     
+(*)   
+let rec eval_s (exp : expr) (env : Env.env) : Env.value =
+  let val_to_exp (v : Env.value) : expr =
+    match v with
+    Val e -> e in
+  match exp with
+  | Var _ -> raise (EvalException "free variable found")
+  | Num _ -> Env.Val exp
+  | Bool _ -> Env.Val exp
+  | Unop (u, x) -> let x' = val_to_exp (eval_s x) in
+                   (match u with
+                    | Negate -> ~- (Env.Val x')
+  | Binop (b, x, y) -> let x' = val_to_exp (eval_s x) in
+                       let y' = val_to_exp (eval_s y) in
+                       (match b with
+                        | Plus -> match x, y with
+                                  | Num _, Num _ -> (Env.Val x') + (Env.Val y')
+                                  | Bool _, Num _
+                                  | Num _, Bool _ ->
+                        | Minus -> (Env.Val x') - (Env.Val y')
+                        | Times -> (Env.Val x') * (Env.Val y')
+                        | Equals -> (Env.Val x') = (Env.Val y')
+                        | LessThan -> (Env.Val x') < (Env.Val y') ;;
+*)     
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
    

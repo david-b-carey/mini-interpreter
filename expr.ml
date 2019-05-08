@@ -161,16 +161,16 @@ let rec exp_to_concrete_string (exp : expr) : string =
                    | Negate -> "~- (" ^
                                exp_to_concrete_string x ^ ")")
   | Binop (b, x, y) -> (match b with
-                       | Plus -> exp_to_concrete_string x ^ " + " ^
-                                 exp_to_concrete_string y
-                       | Minus -> exp_to_concrete_string x ^ " - (" ^
+                       | Plus -> "(" ^ exp_to_concrete_string x ^ " + " ^
                                   exp_to_concrete_string y ^ ")"
-                       | Times -> "(" ^ exp_to_concrete_string x ^ ") * (" ^
+                       | Minus -> "(" ^ exp_to_concrete_string x ^ " - " ^
+                                  exp_to_concrete_string y ^ ")"
+                       | Times -> "(" ^ exp_to_concrete_string x ^ " * " ^
                                   exp_to_concrete_string y ^ ")"
                        | Equals -> exp_to_concrete_string x ^ " = " ^
-                                   exp_to_concrete_string y
-                       | LessThan -> exp_to_concrete_string x ^ " < " ^
-                                     exp_to_concrete_string y)
+                                  exp_to_concrete_string y
+                       | LessThan -> "(" ^ exp_to_concrete_string x ^ " < " ^
+                                  exp_to_concrete_string y ^ ")")
   | Conditional (x, y, z) -> "if " ^ exp_to_concrete_string x ^ " then " ^
                              exp_to_concrete_string y ^ " else " ^
                              exp_to_concrete_string z
@@ -181,8 +181,7 @@ let rec exp_to_concrete_string (exp : expr) : string =
                         " in " ^ exp_to_concrete_string y
   | Raise -> "Raise"
   | Unassigned -> "Unassigned"
-  | App (x, y) -> "(" ^ exp_to_concrete_string x ^ ") (" ^
-                  exp_to_concrete_string y ^ ")" ;;
+  | App (x, y) -> exp_to_concrete_string x ^ " " ^ exp_to_concrete_string y ;;
 
 (* exp_to_abstract_string : expr -> string
    Returns a string representation of the abstract syntax of the expr *)
