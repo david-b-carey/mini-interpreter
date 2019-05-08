@@ -1,13 +1,13 @@
 open Expr ;;
 
 (* Generate expression examples from textbook *)
-let e1 : expr = Num(3) ;;
-let e2 : expr = App(Num(3), Num(4)) ;;
-let e3 : expr = Let("f", Fun("x", Var("x")), App(App(Var("f"), Var("f")), Num(3))) ;;
+let e1 : expr = Num 3 ;;
+let e2 : expr = App (Num 3, Num 4) ;;
+let e3 : expr = Let ("f", Fun ("x", Var "x"), App (App (Var "f", Var "f"), Num 3)) ;;
 let e4 : expr = 
-  Letrec("f", Fun("x", Conditional(Binop(Equals, Var("x"), Num(0)), Num(1),
-  Binop(Times, Var("x"), App(Var("f"), Binop(Minus, Var("x"), Num(1)))))),
-  App(Var("f"), Num(4))) ;;
+  Letrec ("f", Fun ("x", Conditional (Binop (Equals, Var "x", Num 0), Num 1,
+  Binop (Times, Var "x", App (Var "f", Binop(Minus, Var "x", Num 1))))),
+  App (Var "f", Num 4)) ;;
 
 (* Tests for exp_to_concrete_string *)
 let _ =
@@ -28,35 +28,35 @@ let _ =
 
 (* Construct additional expressions for testing free_vars *)
 let e5 : expr =
-  App(Fun("x", Binop(Plus, Var("x"), Var("x"))),
-  Binop(Times, Num(3), Num(4))) ;;
+  App (Fun ("x", Binop (Plus, Var "x", Var "x")),
+  Binop (Times, Num 3, Num 4)) ;;
 let e6 : expr =
-  Let("double", Fun("x", Binop(Times, Num(2), Var("x"))),
-  App(Var("double"), App(Var("double"), Num(3)))) ;;
+  Let ("double", Fun ("x", Binop (Times, Num 2, Var "x")),
+  App (Var "double", App (Var "double", Num 3))) ;;
 let e7 : expr =
-  Let("id", Fun("x", Var("x")),
-  Let("square", Fun("x", Binop(Times, Var("x"), Var("x"))),
-  Let("y", Num(3), App(App(Var("id"), Var("square")), Var("y"))))) ;;
+  Let ("id", Fun ("x", Var "x"),
+  Let ("square", Fun ("x", Binop (Times, Var "x", Var "x")),
+  Let ("y", Num 3, App (App (Var "id", Var "square"), Var "y")))) ;;
 let e8 : expr =
-  Let("f", Fun("z", Var("y")), App(Fun("y", App(Var("f"), Num(3))), Num(1))) ;;
+  Let ("f", Fun ("z", Var "y"), App (Fun("y", App (Var "f", Num 3)), Num 1)) ;;
 let e9 : expr =
-  Fun("x", Binop(Plus, Var("x"), Var("y"))) ;;
+  Fun ("x", Binop (Plus, Var "x", Var "y")) ;;
 let e10 : expr =
-  Let("x", Num(3), Binop(Plus, Var("x"), Var("y"))) ;;
+  Let ("x", Num 3, Binop (Plus, Var "x", Var "y")) ;;
 let e11 : expr =
-  Var("y") ;;
+  Var "y" ;;
 let e12 : expr =
-  Binop(Plus, Var("x"), Var("y")) ;;
+  Binop (Plus, Var "x", Var "y") ;;
 let e13 : expr =
-  Let("f", App(Var("f"), Num(3)), Binop(Plus, Var("x"), Var("y"))) ;;
+  Let ("f", App (Var "f", Num 3), Binop (Plus, Var "x", Var "y")) ;;
 let e14 : expr =
-  App(Fun("y", Binop(Plus, Var("y"), Var("y"))), Var("y")) ;;
+  App (Fun ("y", Binop (Plus, Var "y", Var "y")), Var "y") ;;
 let e15 : expr =
-  Fun("x", Let("x", Var("y"), Binop(Plus, Var("x"), Num(3)))) ;;
+  Fun ("x", Let("x", Var "y", Binop (Plus, Var "x", Num 3))) ;;
 let e16 : expr =
-  Let("x", Num(3), Var("x")) ;;
+  Let ("x", Num 3, Var "x") ;;
 let e17 : expr =
-  Binop(Plus, Var("y"), Var("y")) ;;
+  Binop (Plus, Var "y", Var "y") ;;
 
 (* Construct sets for testing free_vars *)
 let s1 = vars_of_list [] ;;

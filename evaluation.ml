@@ -106,7 +106,7 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
     let Env.Val e = v in
     e in
     match exp with
-    | Var _ -> raise (EvalError "free var")
+    | Var v -> raise (EvalError "free var")
     | Num _ -> Env.Val exp
     | Bool _ -> Env.Val exp
     | Unop (u, x) -> let x' = val_to_exp (eval_s x env) in
@@ -150,7 +150,7 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                        Env.Val (val_to_exp (eval_s (subst v (x') y) env))
     | Letrec (v, x, y) -> let x' = val_to_exp (eval_s x env) in
                           let f1 = subst v x' y in
-                          let f2 = subst v (Letrec (v, x', Var v)) f1 in
+                          let f2 = subst v (Letrec (v, x', Var "v")) f1 in
                           Env.Val (val_to_exp (eval_s f2 env))
     | Raise -> Env.Val exp
     | Unassigned -> Env.Val exp
