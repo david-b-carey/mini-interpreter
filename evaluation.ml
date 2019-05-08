@@ -109,39 +109,64 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
     | Var _ -> raise EvalException
     | Num _ -> Env.Val exp
     | Bool _ -> Env.Val exp
-    | Unop (u, x) -> (let x' = val_to_exp (Env.Val (val_to_exp (eval_s x env))) in
-                      match u with
+    | Unop (u, x) -> let x' = val_to_exp (eval_s x env) in
+                     (match u with
                       | Negate -> (match x' with
                                    | Num n -> Env.Val (Num (~- n))
                                    | Bool b -> raise EvalException))
-    | Binop (b, x, y) -> let x' = val_to_exp (Env.Val (val_to_exp (eval_s x env))) in
-                         let y' = val_to_exp (Env.Val (val_to_exp (eval_s y env))) in
+    | Binop (b, x, y) -> let x' = val_to_exp (eval_s x env) in
+                         let y' = val_to_exp (eval_s y env) in
+                         let int_builder (op : int -> int -> int) =
+                           (match x', y' with
+                           | Num n, Num m -> Env.Val (Num ((op) n m))
+                           | Bool _, Bool _
+                           | Num _, Bool _ 
+                           | Bool _, Num _ -> raise EvalException) in
                          (match b with
-                          | Plus -> (match x', y' with
-                                     | Num n, Num m -> Env.Val (Num (n + m))
-                                     | Bool _, Bool _
-                                     | Num _, Bool _ 
-                                     | Bool _, Num _ -> raise EvalException)
-                          | Minus -> (match x', y' with
-                                      | Num n, Num m -> Env.Val (Num (n - m))
-                                      | Bool _, Bool _
-                                      | Num _, Bool _ 
-                                      | Bool _, Num _ -> raise EvalException)
-                          | Times -> (match x', y' with
-                                      | Num n, Num m -> Env.Val (Num (n * m))
-                                      | Bool _, Bool _
-                                      | Num _, Bool _ 
-                                      | Bool _, Num _ -> raise EvalException)
-                          | Equals -> (match x', y' with
-                                      | Num n, Num m -> Env.Val (Bool (n = m))
-                                      | Bool a, Bool b -> Env.Val (Bool (a = b))
-                                      | Num _, Bool _ 
-                                      | Bool _, Num _ -> raise EvalException)
-                          | LessThan -> (match x, y with
-                                      | Num n, Num m -> Env.Val (Bool (n < m))
-                                      | Bool a, Bool b -> Env.Val (Bool (a < b))
-                                      | Num _, Bool _ 
-                                      | Bool _, Num _ -> raise EvalException)) ;;
+                         | Plus -> int_builder (+)
+                         | Minus -> int_builder (-)
+                         | Times -> int_builder ( * )
+                         | Equals ->
+                             (match x', y' with
+                              | Num n, Num m -> Env.Val (Bool ((=) n m))
+                              | Bool a, Bool b -> Env.Val (Bool ((=) a b))
+                              | Num _, Bool _ 
+                              | Bool _, Num _ -> raise EvalException)
+                         | LessThan ->
+                             (match x', y' with
+                              | Num n, Num m -> Env.Val (Bool ((<) n m))
+                              | Bool a, Bool b -> Env.Val (Bool ((<) a b))
+                              | Num _, Bool _ 
+                              | Bool _, Num _ -> raise EvalException))
+    | Conditional (x, y, z) -> let x' = val_to_exp (eval_s x env) in
+                               let y' = val_to_exp (eval_s y env) in
+                               let z' = val_to_exp (eval_s z env) in
+                               (match x' with
+                               | Bool bl -> (match y', z' with
+                                              | Num n, Num m ->
+                                                  if bl then Env.Val (Num n)
+                                                  else Env.Val (Num m)
+                                              | Bool a, Bool b ->
+                                                  if bl then Env.Val (Bool b)
+                                                  else Env.Val (Bool b)
+                                              | _ -> raise EvalException)
+                               | _ -> raise EvalException)
+    | Fun _ -> Env.Val exp
+    | Let (v, x, y) -> let x' = val_to_exp (eval_s x env) in
+                       Env.Val (val_to_exp (eval_s (subst v (x') y) env))
+    | Letrec (v, x, y) -> let x' = val_to_exp (eval_s x env) in
+                          let recurd = Letrec (v, x', Var("v")) in
+                          let recurb = subst v recurd x' in
+                          Env.Val (val_to_exp (eval_s (subst v recurb y) env))
+    | Raise -> Env.Val exp
+    | Unassigned -> Env.Val exp
+    | App (x, y) -> let x' = val_to_exp (eval_s x env) in
+                    let y' = val_to_exp (eval_s y env) in
+                    (match x' with
+                    | Fun (v, x) ->
+                        Env.Val (val_to_exp (eval_s (subst v (y') x) env))
+                    | _ -> raise EvalException) ;;
+
 
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
