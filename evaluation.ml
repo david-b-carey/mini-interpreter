@@ -62,11 +62,17 @@ module Env : Env_type =
        printenvp determines whether to include the environment in the
        string representation when called on a closure *)
     let value_to_string ?(printenvp : bool = true) (v : value) : string =
-      failwith "value_to_string not implemented" ;;
+      match v with
+      | Val x -> "Val " ^ (exp_to_concrete_string x)
+      | Closure (x, env) ->
+          if ~(printenvp)
+            then "Closure (" ^ (exp_to_concrete_string x) ^ ", " ^
+            env_to_string env ^ ")"
+          else "Val " ^ (exp_to_concrete_string x) ;;
 
     (* Returns a printable string representation of an environment *)
     let env_to_string (env : env) : string =
-      failwith "env_to_string not implemented" ;;
+      List.fold_left (fun x -> ^ "x") "" env ;;
   end
 ;;
 
@@ -106,7 +112,7 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
     let Env.Val e = v in
     e in
     match exp with
-    | Var v -> raise (EvalError "free var")
+    | Var _ -> raise (EvalError "free var")
     | Num _ -> Env.Val exp
     | Bool _ -> Env.Val exp
     | Unop (u, x) -> let x' = val_to_exp (eval_s x env) in
@@ -154,12 +160,13 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                           Env.Val (val_to_exp (eval_s f2 env))
     | Raise -> Env.Val exp
     | Unassigned -> Env.Val exp
-    | App (x, y) -> let x' = val_to_exp (eval_s x env) in
-                    let y' = val_to_exp (eval_s y env) in
-                    (match x' with
-                     | Fun (v, a) ->
-                        Env.Val (val_to_exp (eval_s (subst v (y') a) env))
-                     | _ -> raise (EvalError "app needs function")) ;;
+    | App (x, y) -> 
+        let x' = val_to_exp (eval_s x env) in
+        let y' = val_to_exp (eval_s y env) in
+        (match x with
+         | Fun (v, a) ->
+             Env.Val (val_to_exp (eval_s (subst v (y') a) env))
+         | _ -> raise (EvalError "app needs function")) ;;
 
 
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
