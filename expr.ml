@@ -110,19 +110,24 @@ let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
   | Num x -> exp
   | Bool x -> exp
   | Unop (u, x) -> Unop (u, (subst var_name repl x))
-  | Binop (b, x, y) -> Binop (b, (subst var_name repl x), (subst var_name repl y))
+  | Binop (b, x, y) -> Binop (b, (subst var_name repl x),
+                                 (subst var_name repl y))
   | Conditional (x, y, z) ->
-      Conditional ((subst var_name repl x), (subst var_name repl y), (subst var_name repl z))
+      Conditional ((subst var_name repl x),
+                   (subst var_name repl y),
+                   (subst var_name repl z))
   | Fun (v, x) -> if v = var_name then exp
                   else if not (SS.mem v (free_vars repl))
                     then Fun (v, subst var_name repl x)
                   else
                     let newvar = new_varname () in
-                    Fun (newvar, (subst var_name repl (subst v (Var newvar) x)))
+                    Fun (newvar, (subst var_name repl
+                                 (subst v (Var newvar) x)))
   | Let (v, x, y) -> if v = var_name
                        then Let (v, (subst var_name repl x), y)
                      else if not (SS.mem v (free_vars repl))
-                       then Let (v, (subst var_name repl x), (subst var_name repl y))
+                       then Let (v, (subst var_name repl x),
+                                    (subst var_name repl y))
                      else
                        let newvar = new_varname () in
                        Let (newvar, (subst var_name repl x),
@@ -130,14 +135,16 @@ let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
   | Letrec (v, x, y) -> if v = var_name
                           then Letrec (v, (subst var_name repl x), y)
                         else if not (SS.mem v (free_vars repl))
-                          then Letrec (v, (subst var_name repl x), (subst var_name repl y))
+                          then Letrec (v, (subst var_name repl x),
+                                          (subst var_name repl y))
                         else
                           let newvar = new_varname () in
                           Letrec (newvar, (subst var_name repl x),
                           (subst var_name repl (subst v (Var newvar) y)))
   | Raise -> Raise
   | Unassigned -> Unassigned
-  | App (x, y) -> App ((subst var_name repl x), (subst var_name repl y)) ;;
+  | App (x, y) -> App ((subst var_name repl x),
+                       (subst var_name repl y)) ;;
 
 (*......................................................................
   String representations of expressions
