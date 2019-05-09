@@ -124,7 +124,8 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                      (match u with
                       | Negate -> (match x' with
                                    | Num n -> Env.Val (Num (~- n))
-                                   | Bool b -> raise (EvalError "negate bool")))
+                                   | Bool b ->
+                                       raise (EvalError "negate bool")))
     | Binop (b, x, y) -> let x' = val_to_exp (eval_s x env) in
                          let y' = val_to_exp (eval_s y env) in
                          let int_builder (op : int -> int -> int) =
@@ -132,7 +133,8 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                            | Num n, Num m -> Env.Val (Num ((op) n m))
                            | Bool _, Bool _
                            | Num _, Bool _ 
-                           | Bool _, Num _ -> raise (EvalError "binop int/bool")) in
+                           | Bool _, Num _ ->
+                               raise (EvalError "binop int/bool")) in
                          (match b with
                          | Plus -> int_builder (+)
                          | Minus -> int_builder (-)
@@ -142,20 +144,23 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
                               | Num n, Num m -> Env.Val (Bool ((=) n m))
                               | Bool a, Bool b -> Env.Val (Bool ((=) a b))
                               | Num _, Bool _ 
-                              | Bool _, Num _ -> raise (EvalError "compare int/bool"))
+                              | Bool _, Num _ ->
+                                  raise (EvalError "compare int/bool"))
                          | LessThan ->
                              (match x', y' with
                               | Num n, Num m -> Env.Val (Bool ((<) n m))
                               | Bool a, Bool b -> Env.Val (Bool ((<) a b))
                               | Num _, Bool _ 
-                              | Bool _, Num _ -> raise (EvalError "compare int/bool")))
+                              | Bool _, Num _ ->
+                                  raise (EvalError "compare int/bool")))
     | Conditional (x, y, z) -> let x' = val_to_exp (eval_s x env) in
                                let y' = val_to_exp (eval_s y env) in
                                let z' = val_to_exp (eval_s z env) in
                                (match x' with
                                | Bool bl -> if bl then Env.Val y'
                                             else Env.Val z'
-                               | _ -> raise (EvalError "need bool in conditional"))
+                               | _ ->
+                                  raise (EvalError "need bool in conditional"))
     | Fun _ -> Env.Val exp
     | Let (v, x, y) -> let x' = val_to_exp (eval_s x env) in
                        Env.Val (val_to_exp (eval_s (subst v (x') y) env))
@@ -174,29 +179,62 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
 
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
    completed *)
-(*   
-let eval_d (exp : expr) (env : Env.env) : Env.value =
+
+let rec eval_d (exp : expr) (env : Env.env) : Env.value =
   let val_to_exp (v : Env.value) : expr =
     let Env.Val e = v in
     e in
   match exp with
-  | Var v -> Env.Closure (exp, env)
+  | Var v -> Env.lookup env v
   | Num _ -> Env.Val exp
   | Bool _ -> Env.Val exp
-  | Unop (u, x) -> let x' = val_to_exp (eval_s x env) in
+  | Unop (u, x) -> let x' = val_to_exp (eval_d x env) in
                    (match u with
                     | Negate -> (match x' with
-                                 | Num n -> Env.Closure (Num (~- n), env)
+                                 | Num n -> Env.Val (Num (~- n))
                                  | Bool b -> raise (EvalError "negate bool")))
-  | Binop (b, x, y) -> 
-  | Conditional (x, y, z) ->
+  | Binop (b, x, y) -> let x' = val_to_exp (eval_d x env) in
+                       let y' = val_to_exp (eval_d y env) in
+                       let int_builder (op : int -> int -> int) =
+                         (match x', y' with
+                          | Num n, Num m -> Env.Val (Num ((op) n m))
+                          | Bool _, Bool _
+                          | Num _, Bool _ 
+                          | Bool _, Num _ ->
+                              raise (EvalError "binop int/bool")) in
+                         (match b with
+                          | Plus -> int_builder (+)
+                          | Minus -> int_builder (-)
+                          | Times -> int_builder ( * )
+                          | Equals ->
+                              (match x', y' with
+                               | Num n, Num m -> Env.Val (Bool ((=) n m))
+                               | Bool a, Bool b -> Env.Val (Bool ((=) a b))
+                               | Num _, Bool _ 
+                               | Bool _, Num _ ->
+                                   raise (EvalError "compare int/bool"))
+                         | LessThan ->
+                             (match x', y' with
+                              | Num n, Num m -> Env.Val (Bool ((<) n m))
+                              | Bool a, Bool b -> Env.Val (Bool ((<) a b))
+                              | Num _, Bool _ 
+                              | Bool _, Num _ ->
+                                  raise (EvalError "compare int/bool")))
+  | Conditional (x, y, z) -> let x' = val_to_exp (eval_d x env) in
+                             let y' = val_to_exp (eval_d y env) in
+                             let z' = val_to_exp (eval_d z env) in
+                             (match x' with
+                              | Bool bl -> if bl then Env.Val y'
+                                           else Env.Val z'
+                              | _ ->
+                                  raise (EvalError "need bool in conditional"))
   | Fun _ -> Env.Val exp
-  | Let (v, x, y) ->
-  | Letrec (v, x, y) ->
+  | Let (v, x, y) -> failwith "not yet implemented"
+  | Letrec (v, x, y) -> failwith "not yet implemented"
   | Raise -> Env.Val exp
   | Unassigned -> Env.Val exp
-  | App (x, y) ->  ;;
-*)  
+  | App (x, y) -> failwith "not yet implemented" ;;
+
 (* The LEXICALLY-SCOPED ENVIRONMENT MODEL evaluator -- optionally
    completed as (part of) your extension *)
 (*   
