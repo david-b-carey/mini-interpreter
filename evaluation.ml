@@ -157,9 +157,9 @@ let rec eval_s (exp : expr) (env : Env.env) : Env.value =
     | App (x, y) -> let x' = val_to_exp (eval_s x env) in
                     let y' = val_to_exp (eval_s y env) in
                     (match x' with
-                    | Fun (v, a) ->
+                     | Fun (v, a) ->
                         Env.Val (val_to_exp (eval_s (subst v (y') a) env))
-                    | _ -> raise (EvalError "app needs function")) ;;
+                     | _ -> raise (EvalError "app needs function")) ;;
 
 
 (* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
