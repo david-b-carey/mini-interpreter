@@ -229,7 +229,9 @@ let rec eval_d (exp : expr) (env : Env.env) : Env.value =
                               | _ ->
                                   raise (EvalError "need bool in conditional"))
   | Fun _ -> Env.Val exp
-  | Let (v, x, y) -> failwith "not yet implemented"
+  | Let (v, x, y) -> let x' = val_to_exp (eval_d x env) in
+                     Env.Val (val_to_exp (eval_d y
+                             (Env.extend env v (ref (eval_d x env)))))
   | Letrec (v, x, y) -> failwith "not yet implemented"
   | Raise -> Env.Val exp
   | Unassigned -> Env.Val exp
@@ -237,22 +239,22 @@ let rec eval_d (exp : expr) (env : Env.env) : Env.value =
 
 (* The LEXICALLY-SCOPED ENVIRONMENT MODEL evaluator -- optionally
    completed as (part of) your extension *)
-(*   
+  
 let eval_l (exp : expr) (env : Env.env) : Env.value =
   match exp with
-  | Var v -> failwith "not yet implemented"
+  | Var v -> Env.lookup env v
   | Num _ -> Env.Val exp
   | Bool _ -> Env.Val exp
-  | Unop (u, x) ->
-  | Binop (b, x, y) ->
-  | Conditional (x, y, z) ->
+  | Unop (u, x) -> failwith "not yet implemented"
+  | Binop (b, x, y) -> failwith "not yet implemented"
+  | Conditional (x, y, z) -> failwith "not yet implemented"
   | Fun _ -> Env.Val exp
-  | Let (v, x, y) ->
-  | Letrec (v, x, y) ->
+  | Let (v, x, y) -> failwith "not yet implemented"
+  | Letrec (v, x, y) -> failwith "not yet implemented"
   | Raise -> Env.Val exp
   | Unassigned -> Env.Val exp
-  | App (x, y) -> ;;
-*)
+  | App (x, y) -> failwith "not yet implemented" ;;
+
 (* The EXTENDED evaluator -- if you want, you can provide your
    extension as a separate evaluator, or if it is type- and
    correctness-compatible with one of the above, you can incorporate
