@@ -127,9 +127,14 @@ let rec subst (var_name : varid) (repl : expr) (exp : expr) : expr =
                        let newvar = new_varname () in
                        Let (newvar, (subst var_name repl x),
                        (subst var_name repl (subst v (Var newvar) y)))
-  | Letrec (v, x, y) -> if v = var_name then exp
+  | Letrec (v, x, y) -> if v = var_name
+                          then Letrec (v, (subst var_name repl x), y)
+                        else if not (SS.mem v (free_vars repl))
+                          then Letrec (v, (subst var_name repl x), (subst var_name repl y))
                         else
-                          Letrec (v, (subst var_name repl x), (subst var_name repl y))
+                          let newvar = new_varname () in
+                          Letrec (newvar, (subst var_name repl x),
+                          (subst var_name repl (subst v (Var newvar) y)))
   | Raise -> Raise
   | Unassigned -> Unassigned
   | App (x, y) -> App ((subst var_name repl x), (subst var_name repl y)) ;;
